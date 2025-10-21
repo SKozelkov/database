@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание заявки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px 0;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #e9ecef;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        label.required::after {
+            content: " *";
+            color: #d32f2f;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        .loading {
+            display: none;
+            color: #666;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-content">
+        <div class="navbar-brand">🏦 Корпоративные карты</div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div class="user-name" th:text="${employee.fullName}">Имя Сотрудника</div>
+                <div class="user-role" th:text="${employee.role.roleName}">Роль</div>
+            </div>
+            <a href="/logout" class="btn-logout">Выйти</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Создание заявки на корпоративную карту</h1>
+        <div class="breadcrumb">
+            <a href="/applications">Заявки</a> / Создание
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error">
+        <span th:text="${error}"></span>
+    </div>
+
+    <div class="card">
+        <form method="post" action="/applications/create" id="applicationForm">
+            <div class="form-group">
+                <label for="organizationId" class="required">Организация</label>
+                <select id="organizationId" name="organizationId" required>
+                    <option value="">Выберите организацию</option>
+                    <option th:each="org : ${organizations}"
+                            th:value="${org.id}"
+                            th:text="${org.name + ' (ИНН: ' + org.inn + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="userId" class="required">Сотрудник (владелец карты)</label>
+                <select id="userId" name="userId" required disabled>
+                    <option value="">Сначала выберите организацию</option>
+                </select>
+                <span class="loading" id="loadingUsers">Загрузка...</span>
+            </div>
+
+            <div class="form-group">
+                <label for="cardTypeId" class="required">Тип карты</label>
+                <select id="cardTypeId" name="cardTypeId" required>
+                    <option value="">Выберите тип карты</option>
+                    <option th:each="type : ${cardTypes}"
+                            th:value="${type.id}"
+                            th:text="${type.typeName + ' - ' + type.annualFee + ' ' + type.currency + '/год'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="branchId" class="required">Отделение для получения</label>
+                <select id="branchId" name="branchId" required>
+                    <option value="">Выберите отделение</option>
+                    <option th:each="branch : ${branches}"
+                            th:value="${branch.id}"
+                            th:text="${branch.name + ' - ' + branch.address}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="comments">Комментарий</label>
+                <textarea id="comments"
+                          name="comments"
+                          placeholder="Дополнительная информация (необязательно)"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Создать заявку</button>
+                <a href="/applications" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Загрузка пользователей при выборе организации
+    document.getElementById('organizationId').addEventListener('change', function() {
+        const organizationId = this.value;
+        const userSelect = document.getElementById('userId');
+        const loading = document.getElementById('loadingUsers');
+
+        if (!organizationId) {
+            userSelect.innerHTML = '<option value="">Сначала выберите организацию</option>';
+            userSelect.disabled = true;
+            return;
+        }
+
+        // Показываем загрузку
+        loading.style.display = 'inline';
+        userSelect.disabled = true;
+        userSelect.innerHTML = '<option value="">Загрузка...</option>';
+
+        // AJAX запрос для получения пользователей
+        fetch('/applications/users-by-organization?organizationId=' + organizationId)
+            .then(response => response.json())
+            .then(users => {
+                loading.style.display = 'none';
+                userSelect.disabled = false;
+
+                if (users.length === 0) {
+                    userSelect.innerHTML = '<option value="">Нет сотрудников в этой организации</option>';
+                } else {
+                    userSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
+                    users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.fullName + ' - ' + user.position;
+                        userSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                userSelect.disabled = false;
+                userSelect.innerHTML = '<option value="">Ошибка загрузки</option>';
+                console.error('Ошибка:', error);
+            });
+    });
+</script>
+</body>
+</html>

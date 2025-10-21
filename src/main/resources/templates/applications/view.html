@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр заявки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px 0;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            margin-bottom: 16px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-new {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-processing {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-approved {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .badge-rejected {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .badge-issued {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-documents {
+            background-color: #fff9c4;
+            color: #f57f17;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        .comments-box {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .comments-box p {
+            margin: 0;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .empty-comments {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-content">
+        <div class="navbar-brand">🏦 Корпоративные карты</div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div class="user-name" th:text="${employee.fullName}">Имя Сотрудника</div>
+                <div class="user-role" th:text="${employee.role.roleName}">Роль</div>
+            </div>
+            <a href="/logout" class="btn-logout">Выйти</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Заявка <span th:text="${application.applicationNumber}">APP-2025-001</span></h1>
+        <div class="breadcrumb">
+            <a href="/applications">Заявки</a> / Просмотр
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Информация о заявке</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Номер заявки</div>
+                <div class="info-value" th:text="${application.applicationNumber}">APP-2025-001</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Статус</div>
+                <div class="info-value">
+                        <span class="badge"
+                              th:classappend="${application.status.statusName == 'Новая'} ? 'badge-new' :
+                                              ${application.status.statusName == 'На рассмотрении'} ? 'badge-processing' :
+                                              ${application.status.statusName == 'Одобрена'} ? 'badge-approved' :
+                                              ${application.status.statusName == 'Отклонена'} ? 'badge-rejected' :
+                                              ${application.status.statusName == 'Выпущена'} ? 'badge-issued' :
+                                              ${application.status.statusName == 'Требуются документы'} ? 'badge-documents' : ''"
+                              th:text="${application.status.statusName}">
+                            Новая
+                        </span>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Дата создания</div>
+                <div class="info-value" th:text="${#temporals.format(application.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2025 10:00</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Менеджер</div>
+                <div class="info-value" th:text="${application.assignedEmployee != null ? application.assignedEmployee.fullName : 'Не назначен'}">Не назначен</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Информация об организации</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Название</div>
+                <div class="info-value" th:text="${application.organization.name}">ООО Компания</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">ИНН</div>
+                <div class="info-value" th:text="${application.organization.inn}">1234567890</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Директор</div>
+                <div class="info-value" th:text="${application.organization.directorName}">Иванов И.И.</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Телефон</div>
+                <div class="info-value" th:text="${application.organization.phone}">+7 (495) 123-45-67</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Владелец карты</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">ФИО</div>
+                <div class="info-value" th:text="${application.user.fullName}">Иванов Иван Иванович</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Должность</div>
+                <div class="info-value" th:text="${application.user.position}">Генеральный директор</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Паспорт</div>
+                <div class="info-value" th:text="${application.user.passportSeries + ' ' + application.user.passportNumber}">4510 123456</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Телефон</div>
+                <div class="info-value" th:text="${application.user.phone}">+7 (917) 123-45-67</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Детали карты</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Тип карты</div>
+                <div class="info-value" th:text="${application.cardType.typeName}">Дебетовая стандарт</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Стоимость обслуживания</div>
+                <div class="info-value" th:text="${application.cardType.annualFee + ' ' + application.cardType.currency + '/год'}">1500 RUB/год</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Отделение выдачи</div>
+                <div class="info-value" th:text="${application.branch.name}">Головной офис</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Адрес отделения</div>
+                <div class="info-value" th:text="${application.branch.address}">г. Москва, ул. Тверская, д. 1</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" th:if="${application.comments != null and !application.comments.isEmpty()}">
+        <div class="section-title">Комментарии</div>
+        <div class="comments-box">
+            <p th:text="${application.comments}">Комментарий к заявке</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/applications" class="btn btn-secondary">← Вернуться к списку</a>
+    </div>
+</div>
+</body>
+</html>
