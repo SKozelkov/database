@@ -231,6 +231,109 @@
             color: #c33;
             border: 1px solid #fcc;
         }
+
+        /* Стили для фильтров */
+        .filters-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .filters-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .filter-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .filters-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-filter {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-reset {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .sort-link {
+            color: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sort-link:hover {
+            color: #667eea;
+        }
+
+        .sort-icon {
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -238,8 +341,10 @@
         <div class="header">
             <h1>🏦 Корпоративные карты</h1>
             <div class="user-info">
-                <span class="user-name" th:text="${employee.fullName}">Пользователь</span>
-                <span class="user-name" th:if="${isAdmin}">(Администратор)</span>
+                <a href="/employee/profile" style="text-decoration: none;">
+                    <span class="user-name" th:text="${employee.fullName}">Пользователь</span>
+                    <span class="user-name" th:if="${isAdmin}">(Администратор)</span>
+                </a>
                 <a href="/logout" class="logout-btn">Выйти</a>
             </div>
         </div>
@@ -257,6 +362,122 @@
                 <h3>Всего заявок</h3>
                 <div class="number" th:text="${applications.size()}">0</div>
             </div>
+        </div>
+
+        <!-- Панель фильтров -->
+        <div class="filters-panel">
+            <div class="filters-header">
+                <h3>🔍 Фильтры и сортировка</h3>
+                <button type="button" class="filter-toggle" onclick="toggleFilters()">
+                    <span id="toggleText">Скрыть</span>
+                </button>
+            </div>
+            <form method="get" action="/applications" id="filterForm">
+                <div class="filters-content" id="filtersContent">
+                    <!-- Фильтр по клиенту -->
+                    <div class="filter-group">
+                        <label for="userId">Клиент</label>
+                        <select id="userId" name="userId">
+                            <option value="">Все клиенты</option>
+                            <option th:each="user : ${allUsers}"
+                                    th:value="${user.id}"
+                                    th:text="${user.fullName}"
+                                    th:selected="${filterUserId != null && filterUserId == user.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр по организации -->
+                    <div class="filter-group">
+                        <label for="organizationId">Организация</label>
+                        <select id="organizationId" name="organizationId">
+                            <option value="">Все организации</option>
+                            <option th:each="org : ${allOrganizations}"
+                                    th:value="${org.id}"
+                                    th:text="${org.name}"
+                                    th:selected="${filterOrganizationId != null && filterOrganizationId == org.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр по типу карты -->
+                    <div class="filter-group">
+                        <label for="cardTypeId">Тип карты</label>
+                        <select id="cardTypeId" name="cardTypeId">
+                            <option value="">Все типы</option>
+                            <option th:each="type : ${allCardTypes}"
+                                    th:value="${type.id}"
+                                    th:text="${type.typeName}"
+                                    th:selected="${filterCardTypeId != null && filterCardTypeId == type.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр по ответственному -->
+                    <div class="filter-group" th:if="${isAdmin}">
+                        <label for="assignedEmployeeId">Ответственный</label>
+                        <select id="assignedEmployeeId" name="assignedEmployeeId">
+                            <option value="">Все сотрудники</option>
+                            <option th:each="emp : ${allEmployees}"
+                                    th:value="${emp.id}"
+                                    th:text="${emp.fullName}"
+                                    th:selected="${filterAssignedEmployeeId != null && filterAssignedEmployeeId == emp.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр по статусу -->
+                    <div class="filter-group">
+                        <label for="statusId">Статус</label>
+                        <select id="statusId" name="statusId">
+                            <option value="">Все статусы</option>
+                            <option th:each="status : ${allStatuses}"
+                                    th:value="${status.id}"
+                                    th:text="${status.statusName}"
+                                    th:selected="${filterStatusId != null && filterStatusId == status.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Фильтр по дате (от) -->
+                    <div class="filter-group">
+                        <label for="dateFrom">Дата создания (от)</label>
+                        <input type="date" id="dateFrom" name="dateFrom"
+                               th:value="${filterDateFrom}">
+                    </div>
+
+                    <!-- Фильтр по дате (до) -->
+                    <div class="filter-group">
+                        <label for="dateTo">Дата создания (до)</label>
+                        <input type="date" id="dateTo" name="dateTo"
+                               th:value="${filterDateTo}">
+                    </div>
+
+                    <!-- Сортировка -->
+                    <div class="filter-group">
+                        <label for="sortBy">Сортировка</label>
+                        <select id="sortBy" name="sortBy">
+                            <option value="createdAt" th:selected="${sortBy == 'createdAt'}">По дате создания</option>
+                            <option value="client" th:selected="${sortBy == 'client'}">По клиенту</option>
+                            <option value="organization" th:selected="${sortBy == 'organization'}">По организации</option>
+                        </select>
+                    </div>
+
+                    <!-- Направление сортировки -->
+                    <div class="filter-group">
+                        <label for="sortDirection">Направление</label>
+                        <select id="sortDirection" name="sortDirection">
+                            <option value="desc" th:selected="${sortDirection == 'desc'}">По убыванию</option>
+                            <option value="asc" th:selected="${sortDirection == 'asc'}">По возрастанию</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn-filter btn-apply">Применить фильтры</button>
+                    <a href="/applications" class="btn-filter btn-reset">Сбросить</a>
+                </div>
+            </form>
         </div>
 
         <div class="applications-table">
@@ -287,9 +508,15 @@
                 </thead>
                 <tbody>
                     <tr th:each="app : ${applications}">
-                        <td th:text="${app.applicationNumber}">APP-001</td>
-                        <td th:text="${app.user.fullName}">Иван Иванов</td>
-                        <td th:text="${app.organization.name}">ООО Компания</td>
+                        <td>
+                            <a th:href="@{/applications/{id}(id=${app.id})}"
+                               th:text="${app.requestNumber}"
+                               style="color: #667eea; text-decoration: none; font-weight: 500;">
+                                REQ-001
+                            </a>
+                        </td>
+                        <td th:text="${app.userOrganization.user.fullName}">Иван Иванов</td>
+                        <td th:text="${app.userOrganization.organization.name}">ООО Компания</td>
                         <td th:text="${app.cardType.typeName}">Стандарт</td>
                         <td>
                             <span th:if="${app.assignedEmployee != null}"
@@ -320,5 +547,23 @@
             </table>
         </div>
     </div>
+
+    <script>
+        function toggleFilters() {
+            const content = document.getElementById('filtersContent');
+            const actions = document.querySelector('.filter-actions');
+            const toggleText = document.getElementById('toggleText');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                actions.style.display = 'flex';
+                toggleText.textContent = 'Скрыть';
+            } else {
+                content.style.display = 'none';
+                actions.style.display = 'none';
+                toggleText.textContent = 'Показать';
+            }
+        }
+    </script>
 </body>
 </html>

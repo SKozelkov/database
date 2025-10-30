@@ -20,6 +20,10 @@ public class Employee {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 

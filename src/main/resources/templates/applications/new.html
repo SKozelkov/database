@@ -247,8 +247,8 @@
             </div>
 
             <div class="form-group">
-                <label for="userId" class="required">Сотрудник (владелец карты)</label>
-                <select id="userId" name="userId" required disabled>
+                <label for="userOrganizationId" class="required">Сотрудник (владелец карты)</label>
+                <select id="userOrganizationId" name="userOrganizationId" required disabled>
                     <option value="">Сначала выберите организацию</option>
                 </select>
                 <span class="loading" id="loadingUsers">Загрузка...</span>
@@ -295,7 +295,7 @@
     // Загрузка пользователей при выборе организации
     document.getElementById('organizationId').addEventListener('change', function() {
         const organizationId = this.value;
-        const userSelect = document.getElementById('userId');
+        const userSelect = document.getElementById('userOrganizationId');
         const loading = document.getElementById('loadingUsers');
 
         if (!organizationId) {
@@ -309,21 +309,21 @@
         userSelect.disabled = true;
         userSelect.innerHTML = '<option value="">Загрузка...</option>';
 
-        // AJAX запрос для получения пользователей
-        fetch('/applications/users-by-organization?organizationId=' + organizationId)
+        // AJAX запрос для получения пользователей организации (userOrganizations)
+        fetch('/api/organizations/' + organizationId + '/users')
             .then(response => response.json())
-            .then(users => {
+            .then(userOrgs => {
                 loading.style.display = 'none';
                 userSelect.disabled = false;
 
-                if (users.length === 0) {
+                if (userOrgs.length === 0) {
                     userSelect.innerHTML = '<option value="">Нет сотрудников в этой организации</option>';
                 } else {
                     userSelect.innerHTML = '<option value="">Выберите сотрудника</option>';
-                    users.forEach(user => {
+                    userOrgs.forEach(userOrg => {
                         const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = user.fullName + ' - ' + user.position;
+                        option.value = userOrg.id; // userOrganizationId
+                        option.textContent = userOrg.fullName + ' - ' + userOrg.position;
                         userSelect.appendChild(option);
                     });
                 }

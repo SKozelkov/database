@@ -199,10 +199,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="userId">
+                    <label for="userOrganizationId">
                         Клиент <span class="required">*</span>
                     </label>
-                    <select id="userId" name="userId" required disabled>
+                    <select id="userOrganizationId" name="userOrganizationId" required disabled>
                         <option value="">Сначала выберите организацию</option>
                     </select>
                     <div class="form-hint">Выберите сотрудника организации, для которого оформляется карта</div>
@@ -257,7 +257,7 @@
     <script>
         // Загрузка пользователей при выборе организации
         function loadUsers(organizationId) {
-            const userSelect = document.getElementById('userId');
+            const userSelect = document.getElementById('userOrganizationId');
 
             if (!organizationId) {
                 userSelect.disabled = true;
@@ -268,18 +268,18 @@
             // Загружаем пользователей через AJAX
             fetch('/api/organizations/' + organizationId + '/users')
                 .then(response => response.json())
-                .then(users => {
+                .then(userOrgs => {
                     userSelect.disabled = false;
                     userSelect.innerHTML = '<option value="">Выберите клиента</option>';
 
-                    users.forEach(user => {
+                    userOrgs.forEach(userOrg => {
                         const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = user.fullName + ' - ' + user.position;
+                        option.value = userOrg.id; // userOrganizationId
+                        option.textContent = userOrg.fullName + ' - ' + userOrg.position;
                         userSelect.appendChild(option);
                     });
 
-                    if (users.length === 0) {
+                    if (userOrgs.length === 0) {
                         userSelect.innerHTML = '<option value="">Нет доступных клиентов</option>';
                         userSelect.disabled = true;
                     }

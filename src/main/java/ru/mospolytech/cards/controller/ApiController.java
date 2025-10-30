@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mospolytech.cards.entity.User;
-import ru.mospolytech.cards.repository.UserRepository;
+import ru.mospolytech.cards.entity.UserOrganization;
+import ru.mospolytech.cards.repository.UserOrganizationRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class ApiController {
 
-    private final UserRepository userRepository;
+    private final UserOrganizationRepository userOrganizationRepository;
 
-    public ApiController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public ApiController(UserOrganizationRepository userOrganizationRepository) {
+        this.userOrganizationRepository = userOrganizationRepository;
     }
 
     /**
@@ -27,15 +27,17 @@ public class ApiController {
      */
     @GetMapping("/organizations/{organizationId}/users")
     public List<Map<String, Object>> getUsersByOrganization(@PathVariable Long organizationId) {
-        List<User> users = userRepository.findByOrganizationId(organizationId);
+        List<UserOrganization> userOrganizations = userOrganizationRepository
+                .findByOrganizationIdAndIsActiveTrue(organizationId);
 
-        return users.stream().map(user -> {
+        return userOrganizations.stream().map(userOrg -> {
             Map<String, Object> userMap = new HashMap<>();
-            userMap.put("id", user.getId());
-            userMap.put("fullName", user.getFullName());
-            userMap.put("position", user.getPosition());
-            userMap.put("email", user.getEmail());
-            userMap.put("phone", user.getPhone());
+            userMap.put("id", userOrg.getId());
+            userMap.put("userId", userOrg.getUser().getId());
+            userMap.put("fullName", userOrg.getUser().getFullName());
+            userMap.put("position", userOrg.getPosition());
+            userMap.put("email", userOrg.getUser().getEmail());
+            userMap.put("phone", userOrg.getUser().getPhone());
             return userMap;
         }).collect(Collectors.toList());
     }

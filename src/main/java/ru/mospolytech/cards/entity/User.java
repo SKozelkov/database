@@ -17,10 +17,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
@@ -29,9 +25,6 @@ public class User {
 
     @Column(name = "middle_name", length = 100)
     private String middleName;
-
-    @Column(name = "position", nullable = false, length = 100)
-    private String position;
 
     @Column(name = "passport_series", nullable = false, length = 10)
     private String passportSeries;

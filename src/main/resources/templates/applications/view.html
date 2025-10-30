@@ -38,26 +38,6 @@
             color: #667eea;
         }
 
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-info {
-            text-align: right;
-        }
-
-        .user-name {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .user-role {
-            font-size: 12px;
-            color: #666;
-        }
-
         .btn-logout {
             padding: 8px 16px;
             background-color: #f8f9fa;
@@ -69,13 +49,16 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 30px auto;
             padding: 0 20px;
         }
 
         .page-header {
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
         h1 {
@@ -92,6 +75,11 @@
         .breadcrumb a {
             color: #667eea;
             text-decoration: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
         }
 
         .card {
@@ -164,8 +152,8 @@
         }
 
         .badge-issued {
-            background-color: #f3e5f5;
-            color: #7b1fa2;
+            background-color: #c8e6c9;
+            color: #2e7d32;
         }
 
         .badge-documents {
@@ -185,14 +173,65 @@
             transition: all 0.2s;
         }
 
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
         .btn-secondary {
             background-color: #f8f9fa;
             color: #666;
             border: 1px solid #dee2e6;
         }
 
-        .btn-secondary:hover {
-            background-color: #e9ecef;
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+            border: 1px solid #a5d6a7;
+        }
+
+        .alert-danger {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ef9a9a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
         }
 
         .comments-box {
@@ -202,27 +241,27 @@
             border-left: 3px solid #667eea;
         }
 
-        .comments-box p {
-            margin: 0;
-            color: #495057;
-            line-height: 1.6;
+        .status-change-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
         }
 
-        .empty-comments {
-            color: #999;
-            font-style: italic;
+        #editMode {
+            display: none;
         }
     </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="navbar-content">
-        <div class="navbar-brand">🏦 Корпоративные карты</div>
-        <div class="navbar-user">
-            <div class="user-info">
-                <div class="user-name" th:text="${employee.fullName}">Имя Сотрудника</div>
-                <div class="user-role" th:text="${employee.role.roleName}">Роль</div>
-            </div>
+        <a href="/applications" class="navbar-brand" style="text-decoration: none;">🏦 Корпоративные карты</a>
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <a href="/employee/profile" style="text-decoration: none; color: #333; font-size: 14px; font-weight: 500;"
+               th:text="${employee != null ? employee.fullName : 'Профиль'}">
+                Профиль
+            </a>
             <a href="/logout" class="btn-logout">Выйти</a>
         </div>
     </div>
@@ -230,131 +269,254 @@
 
 <div class="container">
     <div class="page-header">
-        <h1>Заявка <span th:text="${application.applicationNumber}">APP-2025-001</span></h1>
-        <div class="breadcrumb">
-            <a href="/applications">Заявки</a> / Просмотр
+        <div>
+            <h1>Заявка <span th:text="${request.requestNumber}">№</span></h1>
+            <div class="breadcrumb">
+                <a href="/applications">Заявки</a> / Просмотр
+            </div>
+        </div>
+        <div class="action-buttons" th:if="${canEdit}">
+            <button class="btn btn-primary" onclick="toggleEditMode()">✏️ Редактировать</button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="section-title">Информация о заявке</div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Номер заявки</div>
-                <div class="info-value" th:text="${application.applicationNumber}">APP-2025-001</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Статус</div>
-                <div class="info-value">
+    <!-- Режим просмотра -->
+    <div id="viewMode">
+        <!-- Основная информация о заявке -->
+        <div class="card">
+            <div class="section-title">Информация о заявке</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Номер заявки</div>
+                    <div class="info-value" th:text="${request.requestNumber}">REQ-2025-001</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Статус</div>
+                    <div class="info-value">
                         <span class="badge"
-                              th:classappend="${application.status.statusName == 'Новая'} ? 'badge-new' :
-                                              ${application.status.statusName == 'На рассмотрении'} ? 'badge-processing' :
-                                              ${application.status.statusName == 'Одобрена'} ? 'badge-approved' :
-                                              ${application.status.statusName == 'Отклонена'} ? 'badge-rejected' :
-                                              ${application.status.statusName == 'Выпущена'} ? 'badge-issued' :
-                                              ${application.status.statusName == 'Требуются документы'} ? 'badge-documents' : ''"
-                              th:text="${application.status.statusName}">
+                              th:classappend="${request.status.statusName == 'Новая' ? 'badge-new' :
+                                              request.status.statusName == 'На рассмотрении' ? 'badge-processing' :
+                                              request.status.statusName == 'Одобрена' ? 'badge-approved' :
+                                              request.status.statusName == 'Отклонена' ? 'badge-rejected' :
+                                              request.status.statusName == 'Выпущена' ? 'badge-issued' :
+                                              'badge-documents'}"
+                              th:text="${request.status.statusName}">
                             Новая
                         </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Дата создания</div>
+                    <div class="info-value" th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2025</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Последнее обновление</div>
+                    <div class="info-value" th:text="${#temporals.format(request.updatedAt, 'dd.MM.yyyy HH:mm')}">01.01.2025</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Ответственный менеджер</div>
+                    <div class="info-value" th:text="${request.assignedEmployee != null ? request.assignedEmployee.fullName : 'Не назначен'}">Не назначен</div>
                 </div>
             </div>
+        </div>
 
-            <div class="info-item">
-                <div class="info-label">Дата создания</div>
-                <div class="info-value" th:text="${#temporals.format(application.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2025 10:00</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Менеджер</div>
-                <div class="info-value" th:text="${application.assignedEmployee != null ? application.assignedEmployee.fullName : 'Не назначен'}">Не назначен</div>
+        <!-- Информация о клиенте -->
+        <div class="card">
+            <div class="section-title">Информация о клиенте (владелец карты)</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">ФИО</div>
+                    <div class="info-value" th:text="${request.userOrganization.user.fullName}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Должность</div>
+                    <div class="info-value" th:text="${request.userOrganization.position}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Телефон</div>
+                    <div class="info-value" th:text="${request.userOrganization.user.phone}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" th:text="${request.userOrganization.user.email}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Паспорт</div>
+                    <div class="info-value" th:text="${request.userOrganization.user.passportSeries + ' ' + request.userOrganization.user.passportNumber}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Дата рождения</div>
+                    <div class="info-value" th:text="${#temporals.format(request.userOrganization.user.birthDate, 'dd.MM.yyyy')}">-</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="section-title">Информация об организации</div>
-
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Название</div>
-                <div class="info-value" th:text="${application.organization.name}">ООО Компания</div>
+        <!-- Информация об организации -->
+        <div class="card">
+            <div class="section-title">Информация об организации</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Название организации</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.name}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">ИНН</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.inn}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">КПП</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.kpp}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Директор</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.directorName}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Телефон организации</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.phone}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email организации</div>
+                    <div class="info-value" th:text="${request.userOrganization.organization.email}">-</div>
+                </div>
             </div>
-
-            <div class="info-item">
-                <div class="info-label">ИНН</div>
-                <div class="info-value" th:text="${application.organization.inn}">1234567890</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Директор</div>
-                <div class="info-value" th:text="${application.organization.directorName}">Иванов И.И.</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Телефон</div>
-                <div class="info-value" th:text="${application.organization.phone}">+7 (495) 123-45-67</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="section-title">Владелец карты</div>
-
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">ФИО</div>
-                <div class="info-value" th:text="${application.user.fullName}">Иванов Иван Иванович</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Должность</div>
-                <div class="info-value" th:text="${application.user.position}">Генеральный директор</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Паспорт</div>
-                <div class="info-value" th:text="${application.user.passportSeries + ' ' + application.user.passportNumber}">4510 123456</div>
-            </div>
-
-            <div class="info-item">
-                <div class="info-label">Телефон</div>
-                <div class="info-value" th:text="${application.user.phone}">+7 (917) 123-45-67</div>
+            <div class="info-item" style="margin-top: 20px;">
+                <div class="info-label">Юридический адрес</div>
+                <div class="info-value" th:text="${request.userOrganization.organization.legalAddress}">-</div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="section-title">Детали карты</div>
-
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Тип карты</div>
-                <div class="info-value" th:text="${application.cardType.typeName}">Дебетовая стандарт</div>
+        <!-- Информация о карте -->
+        <div class="card">
+            <div class="section-title">Параметры карты</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Тип карты</div>
+                    <div class="info-value" th:text="${request.cardType.typeName}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Стоимость обслуживания</div>
+                    <div class="info-value" th:text="${request.cardType.annualFee + ' ' + request.cardType.currency + '/год'}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Валюта карты</div>
+                    <div class="info-value" th:text="${request.cardType.currency}">-</div>
+                </div>
             </div>
-
-            <div class="info-item">
-                <div class="info-label">Стоимость обслуживания</div>
-                <div class="info-value" th:text="${application.cardType.annualFee + ' ' + application.cardType.currency + '/год'}">1500 RUB/год</div>
+            <div class="info-item" style="margin-top: 20px;" th:if="${request.cardType.description != null}">
+                <div class="info-label">Описание типа карты</div>
+                <div class="info-value" th:text="${request.cardType.description}">-</div>
             </div>
+        </div>
 
-            <div class="info-item">
-                <div class="info-label">Отделение выдачи</div>
-                <div class="info-value" th:text="${application.branch.name}">Головной офис</div>
+        <!-- Информация об отделении -->
+        <div class="card">
+            <div class="section-title">Отделение для получения карты</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Название отделения</div>
+                    <div class="info-value" th:text="${request.branch.name}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Телефон отделения</div>
+                    <div class="info-value" th:text="${request.branch.phone}">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Часы работы</div>
+                    <div class="info-value" th:text="${request.branch.workHours}">-</div>
+                </div>
             </div>
-
-            <div class="info-item">
+            <div class="info-item" style="margin-top: 20px;">
                 <div class="info-label">Адрес отделения</div>
-                <div class="info-value" th:text="${application.branch.address}">г. Москва, ул. Тверская, д. 1</div>
+                <div class="info-value" th:text="${request.branch.address}">-</div>
             </div>
+        </div>
+
+        <!-- Комментарии -->
+        <div class="card" th:if="${request.comments != null and !request.comments.isEmpty()}">
+            <div class="section-title">Комментарии к заявке</div>
+            <div class="comments-box">
+                <p th:text="${request.comments}">-</p>
+            </div>
+        </div>
+
+        <!-- Смена статуса -->
+        <div class="card" th:if="${canEdit}">
+            <div class="section-title">Управление статусом заявки</div>
+            <form method="post" th:action="@{/applications/{id}/change-status(id=${request.id})}">
+                <div class="status-change-section">
+                    <div class="form-group">
+                        <label for="newStatusId">Новый статус</label>
+                        <select id="newStatusId" name="newStatusId" required>
+                            <option th:each="status : ${allStatuses}"
+                                    th:value="${status.id}"
+                                    th:text="${status.statusName}"
+                                    th:selected="${status.id == request.status.id}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusComment">Комментарий к изменению (необязательно)</label>
+                        <textarea id="statusComment" name="statusComment" placeholder="Причина изменения статуса"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Изменить статус</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <div class="card" th:if="${application.comments != null and !application.comments.isEmpty()}">
-        <div class="section-title">Комментарии</div>
-        <div class="comments-box">
-            <p th:text="${application.comments}">Комментарий к заявке</p>
+    <!-- Режим редактирования -->
+    <div id="editMode">
+        <div class="card">
+            <div class="section-title">Редактирование заявки</div>
+            <form method="post" th:action="@{/applications/{id}/update(id=${request.id})}">
+                <div class="form-group">
+                    <label>Организация</label>
+                    <select disabled>
+                        <option th:text="${request.userOrganization.organization.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userOrganizationId">Сотрудник</label>
+                    <select id="userOrganizationId" name="userOrganizationId" required>
+                        <option th:value="${request.userOrganization.id}"
+                                th:text="${request.userOrganization.user.fullName + ' - ' + request.userOrganization.position}"
+                                selected>
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cardTypeId">Тип карты</label>
+                    <select id="cardTypeId" name="cardTypeId" required>
+                        <option th:each="type : ${cardTypes}"
+                                th:value="${type.id}"
+                                th:text="${type.typeName + ' - ' + type.annualFee + ' ' + type.currency + '/год'}"
+                                th:selected="${type.id == request.cardType.id}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="branchId">Отделение</label>
+                    <select id="branchId" name="branchId" required>
+                        <option th:each="branch : ${branches}"
+                                th:value="${branch.id}"
+                                th:text="${branch.name + ' - ' + branch.address}"
+                                th:selected="${branch.id == request.branch.id}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="comments">Комментарии</label>
+                    <textarea id="comments" name="comments" th:text="${request.comments}"></textarea>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditMode()">Отмена</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -362,5 +524,20 @@
         <a href="/applications" class="btn btn-secondary">← Вернуться к списку</a>
     </div>
 </div>
+
+<script>
+    function toggleEditMode() {
+        const viewMode = document.getElementById('viewMode');
+        const editMode = document.getElementById('editMode');
+
+        if (viewMode.style.display === 'none') {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        } else {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+        }
+    }
+</script>
 </body>
 </html>
